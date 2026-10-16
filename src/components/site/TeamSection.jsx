@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import { ChevronDown, Rss } from "lucide-react";
+import { Link } from "react-router-dom";
+import { ChevronDown, Rss, ArrowRight } from "lucide-react";
 import { useWordPressTeam } from "@/hooks/useWordPressData";
 
 export default function TeamSection() {
@@ -39,42 +40,53 @@ export default function TeamSection() {
           </div>
         ) : (
           <div className="mt-14 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-5 md:gap-7">
-            {visible.map((m, idx) => (
-              <article
-                key={m.id || m.name || idx}
-                className="group bg-mint/40 rounded-3xl overflow-hidden hover:-translate-y-1 transition-transform duration-300 soft-shadow"
-              >
-                <div className="aspect-square overflow-hidden bg-sky">
-                  <img
-                    src={m.img}
-                    alt={`${m.name}, ${m.title} at Shining Stars Fostering`}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                    loading="lazy"
-                  />
-                </div>
-                <div className="p-4 md:p-5 text-center">
-                  <h3 className="text-lg text-charcoal">{m.name}</h3>
-                  <p className="text-xs md:text-[13px] text-blue font-semibold mt-1 leading-snug">
-                    {m.title}
-                  </p>
-                </div>
-              </article>
-            ))}
+            {visible.map((m, idx) => {
+              const slug = m.slug || m.name.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+              return (
+                <article
+                  key={m.id || m.name || idx}
+                  className="group bg-mint/40 rounded-3xl overflow-hidden hover:-translate-y-1 transition-transform duration-300 soft-shadow"
+                >
+                  <Link to={`/team-members/${slug}`} className="block aspect-square overflow-hidden bg-sky relative">
+                    <img
+                      src={m.img}
+                      alt={`${m.name}, ${m.title} at Shining Stars Fostering`}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      loading="lazy"
+                    />
+                  </Link>
+                  <div className="p-4 md:p-5 text-center">
+                    <h3 className="text-lg text-charcoal font-bold group-hover:text-blue transition-colors">
+                      <Link to={`/team-members/${slug}`}>{m.name}</Link>
+                    </h3>
+                    <p className="text-xs md:text-[13px] text-blue font-semibold mt-1 leading-snug">
+                      {m.title}
+                    </p>
+                  </div>
+                </article>
+              );
+            })}
           </div>
         )}
 
-        {team.length > 12 && (
-          <div className="mt-10 text-center">
+        <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
+          {team.length > 12 && (
             <button
               onClick={() => setExpanded(!expanded)}
               className="inline-flex items-center gap-2 bg-blue/10 text-blue font-bold px-6 py-3 rounded-full hover:bg-blue hover:text-white transition-colors"
               aria-expanded={expanded}
             >
-              {expanded ? "Show Less" : `View All ${team.length} Team Members`}
+              {expanded ? "Show Less" : `Quick Expand (${team.length} Members)`}
               <ChevronDown size={16} className={`transition-transform ${expanded ? "rotate-180" : ""}`} />
             </button>
-          </div>
-        )}
+          )}
+          <Link
+            to="/team"
+            className="inline-flex items-center gap-2 bg-blue text-white font-bold px-6 py-3 rounded-full hover:bg-orange transition-colors shadow-sm"
+          >
+            Explore Full Team Directory <ArrowRight size={16} />
+          </Link>
+        </div>
       </div>
     </section>
   );

@@ -11,6 +11,10 @@ import Home from "@/pages/Home";
 import About from "@/pages/About";
 import FosterWithUs from "@/pages/FosterWithUs";
 import KidsZone from "@/pages/KidsZone";
+import BlogList from "@/pages/BlogList";
+import SinglePost from "@/pages/SinglePost";
+import TeamDirectory from "@/pages/TeamDirectory";
+import TeamMemberProfile from "@/pages/TeamMemberProfile";
 import DynamicWordPressPage from "@/pages/DynamicWordPressPage";
 import SiteLayout from "@/components/site/SiteLayout";
 
@@ -21,16 +25,37 @@ function App() {
         <ScrollToTop />
         <Routes>
           <Route element={<SiteLayout />}>
+            {/* Primary Core Application Routes */}
             <Route path="/" element={<Home />} />
             <Route path="/about" element={<About />} />
             <Route path="/foster-with-us" element={<FosterWithUs />} />
             <Route path="/kids-zone" element={<KidsZone />} />
+
+            {/* Team Members Routes (JetEngine CPT) */}
+            <Route path="/team" element={<TeamDirectory />} />
+            <Route path="/about/our-team" element={<TeamDirectory />} />
+            <Route path="/team-members" element={<TeamDirectory />} />
+            <Route path="/team-members/:slug" element={<TeamMemberProfile />} />
+            <Route path="/team/:slug" element={<TeamMemberProfile />} />
+
+            {/* News & Blog Routes */}
+            <Route path="/news" element={<BlogList />} />
+            <Route path="/blog" element={<BlogList />} />
+            <Route path="/news/:slug" element={<SinglePost />} />
+            <Route path="/blog/:slug" element={<SinglePost />} />
+
+            {/* Specific Known WordPress Landing Pages */}
             <Route
               path="/what-is-fostering"
               element={<DynamicWordPressPage uriOverride="what-is-fostering" />}
             />
             <Route path="/page/:slug" element={<DynamicWordPressPage />} />
+
+            {/* Catch-all Dynamic WordPress Route (supports nested URIs like /services/care/) */}
+            <Route path="/*" element={<DynamicWordPressPage />} />
           </Route>
+
+          {/* Standalone 404 Route */}
           <Route path="*" element={<PageNotFound />} />
         </Routes>
         <WordPressStatusBadge />

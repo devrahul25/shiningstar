@@ -1,4 +1,6 @@
 import React from "react";
+import { Link } from "react-router-dom";
+import SEO from "@/components/SEO";
 import PageHero from "@/components/site/PageHero";
 import PhoneButtons from "@/components/site/PhoneButtons";
 import InfoCards from "@/components/site/InfoCards";
@@ -8,11 +10,16 @@ import FaqSection from "@/components/site/FaqSection";
 import ClosingCta from "@/components/site/ClosingCta";
 import EnquirySection from "@/components/site/EnquirySection";
 import { LONDON_MAP } from "@/lib/ssfaData";
-import { HERO_IMGS, FOSTER_INVOLVES, PLACEMENTS, JOURNEY, TRAINING, FAQS, SITE } from "@/lib/pagesContent";
+import { HERO_IMGS, FOSTER_INVOLVES, PLACEMENTS, JOURNEY, TRAINING, FAQS } from "@/lib/pagesContent";
 
 export default function FosterWithUs() {
   return (
     <main>
+      <SEO
+        title="Foster With Us — Journey, Allowances & FAQs"
+        description="Discover how to become a foster carer with Shining Stars Fostering. Learn about allowances starting from £450/week, 24/7 support, training, and the application process."
+        image={HERO_IMGS.foster}
+      />
       <PageHero
         eyebrow="Foster with us"
         title="Could you make a difference through fostering?"
@@ -50,9 +57,9 @@ export default function FosterWithUs() {
         ]}
         note="Current allowance rates and any tax information."
       >
-        <a href={`${SITE}/fostering-allowance-shiningstars/`} target="_blank" rel="noopener noreferrer" className="mt-5 inline-flex font-bold text-orange hover:text-blue py-1">
+        <Link to="/fostering-allowance-shiningstars" className="mt-5 inline-flex font-bold text-orange hover:text-blue py-1">
           Read about fostering allowances →
-        </a>
+        </Link>
       </TextSection>
 
       <FaqSection id="faqs" faqs={FAQS} />

@@ -2,7 +2,14 @@ export const ENQUIRE_TO = "/foster-with-us#enquire";
 
 export const MENU = [
   { label: "Home", to: "/" },
-  { label: "About Us", to: "/about" },
+  {
+    label: "About Us",
+    to: "/about",
+    children: [
+      { label: "About Shining Stars", to: "/about" },
+      { label: "Our Dedicated Team", to: "/team" },
+    ],
+  },
   {
     label: "Foster With Us",
     to: "/foster-with-us",
@@ -19,6 +26,13 @@ export const MENU = [
     ],
   },
   { label: "Kids Zone", to: "/kids-zone" },
-  { label: "News & Events", to: "/#news" },
+  {
+    label: "News & Events",
+    to: "/news",
+    children: [
+      { label: "All News & Articles", to: "/news" },
+      { label: "Events & Mela", to: "/#events" },
+    ],
+  },
   { label: "Contact", to: "#contact" },
 ];

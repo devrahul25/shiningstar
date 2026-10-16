@@ -1,10 +1,10 @@
 import React from "react";
+import SEO from "@/components/SEO";
 import PageHero from "@/components/site/PageHero";
 import PhoneButtons from "@/components/site/PhoneButtons";
 import TextSection from "@/components/site/TextSection";
 import InfoCards from "@/components/site/InfoCards";
 import TeamSection from "@/components/site/TeamSection";
-import TbcNote from "@/components/site/TbcNote";
 import RecognitionSection from "@/components/site/RecognitionSection";
 import OfficeContact from "@/components/site/OfficeContact";
 import ClosingCta from "@/components/site/ClosingCta";
@@ -14,6 +14,11 @@ import { HERO_IMGS, ABOUT_STORY, VALUES, SUPPORT } from "@/lib/pagesContent";
 export default function About() {
   return (
     <main>
+      <SEO
+        title="About Us — Our Values & Mission"
+        description="Learn about Shining Stars Fostering Agency: our founding story, core values, family-feel environment, and Ofsted Outstanding rated care in Croydon and London."
+        image={HERO_IMGS.about}
+      />
       <PageHero
         eyebrow="About Shining Stars"
         title="Helping children shine, supporting families to thrive."
@@ -37,9 +42,6 @@ export default function About() {
 
       <div id="team" className="scroll-mt-24">
         <TeamSection />
-        <div className="container-ss -mt-12 pb-16 text-center">
-          <TbcNote>Individual staff profiles and biographies. Placeholders until each profile is approved.</TbcNote>
-        </div>
       </div>
 
       <RecognitionSection />

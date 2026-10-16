@@ -1,4 +1,5 @@
 import React from "react";
+import { Link } from "react-router-dom";
 import { ArrowRight, Rss } from "lucide-react";
 import { useWordPressPosts } from "@/hooks/useWordPressData";
 
@@ -24,12 +25,12 @@ export default function NewsSection() {
               What's happening at Shining Stars.
             </h2>
           </div>
-          <a
-            href="https://www.shiningstarsfostering.com/shining-stars-news-updates/"
+          <Link
+            to="/news"
             className="text-blue font-bold hover:text-orange transition-colors inline-flex items-center gap-1.5"
           >
             All news & updates <ArrowRight size={16} />
-          </a>
+          </Link>
         </div>
 
         {isLoading ? (
@@ -40,43 +41,44 @@ export default function NewsSection() {
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-7">
-            {posts.map((n, idx) => (
-              <article
-                key={n.id || n.slug || idx}
-                className="group bg-white rounded-3xl overflow-hidden ring-1 ring-border hover:shadow-xl transition-shadow duration-300 flex flex-col"
-              >
-                <a
-                  href={n.href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="block aspect-[16/10] overflow-hidden bg-sky relative"
+            {posts.map((n, idx) => {
+              const targetRoute = `/news/${n.slug}`;
+              return (
+                <article
+                  key={n.id || n.slug || idx}
+                  className="group bg-white rounded-3xl overflow-hidden ring-1 ring-border hover:shadow-xl transition-shadow duration-300 flex flex-col"
                 >
-                  <img
-                    src={n.img}
-                    alt={n.title}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                    loading="lazy"
-                  />
-                </a>
-                <div className="p-6 flex flex-col flex-1">
-                  <span className="inline-flex self-start text-xs font-bold text-blue bg-blue/10 px-3 py-1 rounded-full">
-                    {n.tag}
-                  </span>
-                  <h3 className="text-lg text-charcoal mt-3 leading-snug">{n.title}</h3>
-                  <p className="mt-2 text-sm text-charcoal/65 leading-relaxed flex-1">
-                    {n.excerpt}
-                  </p>
-                  <a
-                    href={n.href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="mt-4 inline-flex items-center gap-1.5 text-sm font-bold text-orange hover:text-blue transition-colors"
+                  <Link
+                    to={targetRoute}
+                    className="block aspect-[16/10] overflow-hidden bg-sky relative"
                   >
-                    Read more <ArrowRight size={15} />
-                  </a>
-                </div>
-              </article>
-            ))}
+                    <img
+                      src={n.img}
+                      alt={n.title}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      loading="lazy"
+                    />
+                  </Link>
+                  <div className="p-6 flex flex-col flex-1">
+                    <span className="inline-flex self-start text-xs font-bold text-blue bg-blue/10 px-3 py-1 rounded-full">
+                      {n.tag}
+                    </span>
+                    <h3 className="text-lg font-bold font-display text-charcoal mt-3 leading-snug group-hover:text-blue transition-colors">
+                      <Link to={targetRoute}>{n.title}</Link>
+                    </h3>
+                    <p className="mt-2 text-sm text-charcoal/65 leading-relaxed flex-1">
+                      {n.excerpt}
+                    </p>
+                    <Link
+                      to={targetRoute}
+                      className="mt-4 inline-flex items-center gap-1.5 text-sm font-bold text-orange hover:text-blue transition-colors"
+                    >
+                      Read more <ArrowRight size={15} />
+                    </Link>
+                  </div>
+                </article>
+              );
+            })}
           </div>
         )}
       </div>

@@ -1,4 +1,5 @@
 import React from "react";
+import SEO from "@/components/SEO";
 import HeroSlider from "@/components/site/HeroSlider";
 import NewsTicker from "@/components/site/NewsTicker";
 import OfstedHighlight from "@/components/site/OfstedHighlight";
@@ -18,6 +19,10 @@ export default function Home() {
 
   return (
     <>
+      <SEO
+        title="Outstanding Independent Fostering Agency London & UK"
+        description="Shining Stars Fostering Agency is an independent fostering agency rated Outstanding by Ofsted, providing 24/7 bespoke support and generous allowances to foster carers."
+      />
       <HeroSlider onEnquire={scrollToEnquire} />
       <NewsTicker />
       <main>

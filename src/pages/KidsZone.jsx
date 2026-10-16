@@ -1,5 +1,6 @@
 import React from "react";
 import { LifeBuoy } from "lucide-react";
+import SEO from "@/components/SEO";
 import PageHero from "@/components/site/PageHero";
 import TextSection from "@/components/site/TextSection";
 import InfoCards from "@/components/site/InfoCards";
@@ -14,6 +15,11 @@ const PROCEDURES = "https://www.proceduresonline.com/shiningstars/index.html";
 export default function KidsZone() {
   return (
     <main>
+      <SEO
+        title="Kids Zone — Your Space & Your Rights"
+        description="A dedicated space for children and young people in foster care: rights, resources, someone to talk to, and advice from Shining Stars Fostering Agency."
+        image={HERO_IMGS.kids}
+      />
       <PageHero
         eyebrow="Kids Zone"
         title="Your space. Your voice."

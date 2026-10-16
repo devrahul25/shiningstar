@@ -1,16 +1,28 @@
 import React from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, useLocation, Link } from "react-router-dom";
 import { useWordPressPage } from "@/hooks/useWordPressData";
+import SEO from "@/components/SEO";
 import PageHero from "@/components/site/PageHero";
 import ClosingCta from "@/components/site/ClosingCta";
 import EnquirySection from "@/components/site/EnquirySection";
+import PageNotFound from "@/lib/PageNotFound";
 import { ArrowLeft, Calendar, Rss, Loader2 } from "lucide-react";
 import { HERO_IMGS } from "@/lib/pagesContent";
+import { formatWpDate } from "@/api/wordpressUtils";
 
 export default function DynamicWordPressPage({ uriOverride }) {
   const params = useParams();
-  const uri = uriOverride || params.slug || "what-is-fostering";
-  const { data: page, isLoading, isError } = useWordPressPage(uri);
+  const location = useLocation();
+
+  // Resolve target URI from prop, router params, or pathname (handles nested WordPress pages)
+  const resolvedUri =
+    uriOverride ||
+    params["*"] ||
+    params.slug ||
+    location.pathname.replace(/^\/+|\/+$/g, "") ||
+    "what-is-fostering";
+
+  const { data: page, isLoading, isError } = useWordPressPage(resolvedUri);
 
   if (isLoading) {
     return (
@@ -21,33 +33,27 @@ export default function DynamicWordPressPage({ uriOverride }) {
     );
   }
 
+  // If WordPress returned null or error, gracefully display PageNotFound
   if (isError || !page) {
-    return (
-      <main className="min-h-[60vh] flex flex-col items-center justify-center p-12 text-center container-ss">
-        <h1 className="text-3xl font-display font-bold text-charcoal mb-4">Page Not Found on WordPress</h1>
-        <p className="text-charcoal/70 max-w-md mb-8">
-          The WordPress page <code className="bg-slate-100 px-2 py-1 rounded text-sm text-blue">/{uri}</code> could not be found or has not been published yet.
-        </p>
-        <Link
-          to="/"
-          className="inline-flex items-center gap-2 bg-blue text-white px-6 py-3 rounded-full font-bold hover:bg-orange transition-colors"
-        >
-          <ArrowLeft size={16} /> Return to Home
-        </Link>
-      </main>
-    );
+    return <PageNotFound />;
   }
 
   return (
     <main>
+      <SEO
+        title={page.title}
+        description={`Learn more about ${page.title} on the Shining Stars Fostering website.`}
+        image={page.image || HERO_IMGS.about}
+      />
+
       <PageHero
         eyebrow="Shining Stars Fostering"
         title={page.title}
-        intro="Official information and guidance from Shining Stars Fostering Agency."
+        intro="Official guidance and information from Shining Stars Fostering Agency."
         img={page.image || HERO_IMGS.about}
-        imgAlt={page.title}
+        imgAlt={page.imageAlt || page.title}
       >
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
           <Link
             to="/"
             className="inline-flex items-center gap-1.5 text-xs font-bold text-white/80 hover:text-white transition-colors bg-white/10 px-3 py-1.5 rounded-full backdrop-blur"
@@ -58,8 +64,8 @@ export default function DynamicWordPressPage({ uriOverride }) {
             <Rss size={12} /> Live from WordPress
           </span>
           {page.date && (
-            <span className="hidden sm:inline-flex items-center gap-1 text-xs text-white/70">
-              <Calendar size={13} /> {new Date(page.date).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
+            <span className="hidden sm:inline-flex items-center gap-1 text-xs text-white/80 bg-white/10 px-3 py-1.5 rounded-full backdrop-blur">
+              <Calendar size={13} /> Updated {formatWpDate(page.date)}
             </span>
           )}
         </div>
@@ -89,3 +95,4 @@ export default function DynamicWordPressPage({ uriOverride }) {
     </main>
   );
 }
+
