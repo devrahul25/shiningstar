@@ -1,14 +1,14 @@
 import React, { useEffect } from "react";
+import { Link } from "react-router-dom";
 import SEO from "@/components/SEO";
 import PageHero from "@/components/site/PageHero";
-import PhoneButtons from "@/components/site/PhoneButtons";
 import TeamSection from "@/components/site/TeamSection";
 import RecognitionSection from "@/components/site/RecognitionSection";
 import OfficeContact from "@/components/site/OfficeContact";
 import ClosingCta from "@/components/site/ClosingCta";
 import { useWordPressPage } from "@/hooks/useWordPressData";
 import { HERO_IMGS } from "@/lib/pagesContent";
-import { Rss, Hash, Loader2 } from "lucide-react";
+import { Rss, Loader2 } from "lucide-react";
 
 export default function About() {
   const { data: page, isLoading, isLive } = useWordPressPage("about");
@@ -42,20 +42,18 @@ export default function About() {
         imgAlt={page?.imageAlt || "Caroline from the Shining Stars team at the London Marathon"}
         focus="center 30%"
       >
-        <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-          <PhoneButtons />
-          <div className="flex items-center gap-2">
-            {isLive && (
-              <span className="inline-flex items-center gap-1 text-xs font-bold bg-green/20 text-emerald-300 px-3 py-1.5 rounded-full backdrop-blur">
-                <Rss size={12} /> Live from WordPress
-              </span>
-            )}
-            {page?.databaseId && (
-              <span className="inline-flex items-center gap-1 text-xs font-mono font-bold bg-white/15 text-white px-3 py-1.5 rounded-full backdrop-blur">
-                <Hash size={12} /> Page ID: {page.databaseId}
-              </span>
-            )}
-          </div>
+        <div className="flex flex-wrap items-center gap-4">
+          <Link
+            to="/foster-with-us#enquire"
+            className="inline-flex items-center justify-center gap-2 bg-orange text-white font-bold px-8 py-3.5 rounded-full min-h-[48px] hover:bg-orange/90 transition-all shadow-md text-base"
+          >
+            Send an enquiry
+          </Link>
+          {isLive && (
+            <span className="inline-flex items-center gap-1.5 text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 px-3 py-1.5 rounded-full">
+              <Rss size={12} /> Live from WordPress (Page #{page?.databaseId || 6954})
+            </span>
+          )}
         </div>
       </PageHero>
 
