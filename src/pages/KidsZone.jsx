@@ -1,5 +1,5 @@
-import React from "react";
-import { LifeBuoy } from "lucide-react";
+import React, { useEffect } from "react";
+import { LifeBuoy, Rss, Hash } from "lucide-react";
 import SEO from "@/components/SEO";
 import PageHero from "@/components/site/PageHero";
 import TextSection from "@/components/site/TextSection";
@@ -7,29 +7,60 @@ import InfoCards from "@/components/site/InfoCards";
 import RightsSection from "@/components/site/RightsSection";
 import ResourceGroups from "@/components/site/ResourceGroups";
 import HelpBox from "@/components/site/HelpBox";
+import { useWordPressPage } from "@/hooks/useWordPressData";
 import { CONTACT } from "@/lib/ssfaData";
 import { HERO_IMGS, KIDS_LIVING, TALK_TO, RESOURCE_GROUPS } from "@/lib/pagesContent";
 
 const PROCEDURES = "https://www.proceduresonline.com/shiningstars/index.html";
 
 export default function KidsZone() {
+  const { data: page, isLive } = useWordPressPage("kids-zone");
+
+  useEffect(() => {
+    if (page?.databaseId) {
+      console.log(
+        `%c[Kids Zone Page Active]%c Loaded from WordPress | Database ID: %c#${page.databaseId}%c | URI: %c${page.uri}%c | Title: "${page.title}"`,
+        "background: #16a34a; color: white; padding: 2px 6px; border-radius: 4px; font-weight: bold;",
+        "color: #475569;",
+        "color: #059669; font-weight: bold; background: #ecfdf5; padding: 1px 6px; border-radius: 3px;",
+        "color: #475569;",
+        "color: #7c3aed; font-weight: bold;",
+        "color: #475569;"
+      );
+    }
+  }, [page]);
+
   return (
     <main>
       <SEO
         title="Kids Zone — Your Space & Your Rights"
         description="A dedicated space for children and young people in foster care: rights, resources, someone to talk to, and advice from Shining Stars Fostering Agency."
-        image={HERO_IMGS.kids}
+        image={page?.image || HERO_IMGS.kids}
       />
       <PageHero
         eyebrow="Kids Zone"
-        title="Your space. Your voice."
+        title={page?.title || "Your space. Your voice."}
         intro="This page is for you: children and young people living with Shining Stars foster families."
-        img={HERO_IMGS.kids}
+        img={page?.image || HERO_IMGS.kids}
         imgAlt="A sunny, open field"
       >
-        <a href="#help" className="inline-flex items-center gap-2 bg-orange text-white font-bold px-6 py-3.5 rounded-full min-h-[48px] hover:bg-orange/90 shadow-md">
-          <LifeBuoy size={18} /> I need help
-        </a>
+        <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+          <a href="#help" className="inline-flex items-center gap-2 bg-orange text-white font-bold px-6 py-3.5 rounded-full min-h-[48px] hover:bg-orange/90 shadow-md">
+            <LifeBuoy size={18} /> I need help
+          </a>
+          <div className="flex items-center gap-2">
+            {isLive && (
+              <span className="inline-flex items-center gap-1 text-xs font-bold bg-green/20 text-emerald-300 px-3 py-1.5 rounded-full backdrop-blur">
+                <Rss size={12} /> Live from WordPress
+              </span>
+            )}
+            {page?.databaseId && (
+              <span className="inline-flex items-center gap-1 text-xs font-mono font-bold bg-white/15 text-white px-3 py-1.5 rounded-full backdrop-blur">
+                <Hash size={12} /> Page ID: {page.databaseId}
+              </span>
+            )}
+          </div>
+        </div>
       </PageHero>
 
       <TextSection

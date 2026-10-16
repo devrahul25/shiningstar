@@ -328,8 +328,17 @@ export function useWordPressTeamMember(slugOrUri) {
   });
 }
 
+// Known alias mappings for WordPress pages where URI slugs differ between frontend and WP
+const PAGE_ALIASES = {
+  about: ["/about/", "/about-shining-stars-fostering/"],
+  "about-us": ["/about/", "/about-shining-stars-fostering/"],
+  "foster-with-us": ["/why-foster-with-us/", "/could-you-foster-children/", "/how-to-become-foster-carer/"],
+  "kids-zone": ["/children-young-people-zone/", "/kids-zone/birth-children-guides-to-foster-care/"],
+  "what-is-fostering": ["/what-is-fostering-2/", "/fostering/"],
+};
+
 /**
- * Hook to fetch a WordPress page by URI with real-time updates and HTML sanitization
+ * Hook to fetch a WordPress page by URI with alias resolution, HTML sanitization, and console logging
  */
 export function useWordPressPage(uri) {
   return useQuery({
@@ -338,20 +347,57 @@ export function useWordPressPage(uri) {
       if (!uri) return null;
       // Strip leading and trailing slashes for clean URI resolution
       const cleanUri = uri.replace(/^\/+|\/+$/g, "");
-      const { data, error } = await executeWpQuery(GET_PAGE_BY_URI_QUERY, {
-        uri: cleanUri,
-      });
+      const candidates = [
+        cleanUri,
+        `/${cleanUri}/`,
+        ...(PAGE_ALIASES[cleanUri] || []),
+      ];
 
-      if (error || !data?.page) return null;
+      let pageData = null;
 
-      const p = data.page;
+      for (const candidate of candidates) {
+        const { data, error } = await executeWpQuery(GET_PAGE_BY_URI_QUERY, {
+          uri: candidate,
+        });
+
+        if (!error && data?.page?.databaseId) {
+          pageData = data.page;
+          break;
+        }
+      }
+
+      if (!pageData) {
+        if (import.meta.env.DEV) {
+          console.warn(`[WordPress Page] No page found for URI: "${uri}" (tried candidates: ${candidates.join(", ")})`);
+        }
+        return null;
+      }
+
+      const p = pageData;
+      const sanitizedContent = sanitizeHtml(p.content || "");
+
+      // Prominently log the fetched page ID to the browser console
+      console.log(
+        `%c[WordPress Page Fetched]%c ID: %c#${p.databaseId}%c | Title: %c"${p.title}"%c | URI: %c${p.uri}%c | GraphQL ID: %c${p.id}`,
+        "background: #10b981; color: white; padding: 2px 6px; border-radius: 4px; font-weight: bold;",
+        "color: #64748b;",
+        "color: #2563eb; font-weight: bold; background: #eff6ff; padding: 1px 6px; border-radius: 3px; font-size: 13px;",
+        "color: #64748b;",
+        "color: #b45309; font-weight: bold;",
+        "color: #64748b;",
+        "color: #7c3aed; font-weight: bold;",
+        "color: #64748b;",
+        "color: #059669; font-family: monospace;"
+      );
+
       return {
         id: p.id,
         databaseId: p.databaseId,
+        pageId: p.databaseId,
         title: cleanTitle(p.title),
         slug: p.slug,
         uri: p.uri,
-        content: sanitizeHtml(p.content || ""),
+        content: sanitizedContent,
         rawContent: p.content || "",
         image: resolveImageUrl(p.featuredImage?.node?.sourceUrl, null),
         imageAlt: p.featuredImage?.node?.altText || p.title,

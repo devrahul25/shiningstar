@@ -24,6 +24,21 @@ export default function DynamicWordPressPage({ uriOverride }) {
 
   const { data: page, isLoading, isError } = useWordPressPage(resolvedUri);
 
+  React.useEffect(() => {
+    if (page?.databaseId) {
+      console.log(
+        `%c[Dynamic Page Loaded]%c Database ID: %c#${page.databaseId}%c | Title: %c"${page.title}"%c | URI: %c${page.uri}`,
+        "background: #0284c7; color: white; padding: 2px 6px; border-radius: 4px; font-weight: bold;",
+        "color: #475569;",
+        "color: #2563eb; font-weight: bold; background: #eff6ff; padding: 1px 6px; border-radius: 3px; font-size: 13px;",
+        "color: #475569;",
+        "color: #d97706; font-weight: bold;",
+        "color: #475569;",
+        "color: #7c3aed; font-weight: bold;"
+      );
+    }
+  }, [page]);
+
   if (isLoading) {
     return (
       <main className="min-h-[60vh] flex flex-col items-center justify-center p-12">
@@ -62,6 +77,9 @@ export default function DynamicWordPressPage({ uriOverride }) {
           </Link>
           <span className="inline-flex items-center gap-1 text-xs font-bold bg-green/20 text-emerald-300 px-3 py-1.5 rounded-full backdrop-blur">
             <Rss size={12} /> Live from WordPress
+          </span>
+          <span className="inline-flex items-center gap-1 text-xs font-mono font-bold bg-white/15 text-white px-3 py-1.5 rounded-full backdrop-blur">
+            WP Page ID: #{page.databaseId}
           </span>
           {page.date && (
             <span className="hidden sm:inline-flex items-center gap-1 text-xs text-white/80 bg-white/10 px-3 py-1.5 rounded-full backdrop-blur">
