@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { executeWpQuery, WORDPRESS_GRAPHQL_URL } from "@/api/wordpressClient";
+import { executeWpQuery, executeWpRest, WORDPRESS_GRAPHQL_URL } from "@/api/wordpressClient";
 import {
   GET_POSTS_QUERY,
   GET_POSTS_BY_CATEGORY_QUERY,
@@ -19,6 +19,8 @@ import {
   sanitizeHtml,
   resolveImageUrl,
   formatWpDate,
+  formatEventDate,
+  formatEventTime,
 } from "@/api/wordpressUtils";
 import {
   HERO_SLIDES,
@@ -330,11 +332,35 @@ export function useWordPressTeamMember(slugOrUri) {
 
 // Known alias mappings for WordPress pages where URI slugs differ between frontend and WP
 const PAGE_ALIASES = {
+  home: ["/home-2/", "/home/", "/"],
+  "home-2": ["/home-2/"],
   about: ["/about/", "/about-shining-stars-fostering/"],
   "about-us": ["/about/", "/about-shining-stars-fostering/"],
-  "foster-with-us": ["/why-foster-with-us/", "/could-you-foster-children/", "/how-to-become-foster-carer/"],
+  "about-shining-stars-fostering": ["/about/", "/about-shining-stars-fostering/"],
+  "foster-with-us": ["/why-foster-with-us/", "/fostering-with-us/", "/could-you-foster-children/"],
   "kids-zone": ["/children-young-people-zone/", "/kids-zone/birth-children-guides-to-foster-care/"],
   "what-is-fostering": ["/what-is-fostering-2/", "/fostering/"],
+  "faqs": ["/frequently-asked-questions-faq/", "/services/frequently-asked-questions/"],
+  "frequently-asked-questions": ["/frequently-asked-questions-faq/", "/services/frequently-asked-questions/"],
+  "fostering-allowance": ["/fostering-allowance-shiningstars/", "/fostering-pay/", "/fostering-allowance/"],
+  "fostering-allowances": ["/fostering-allowance-shiningstars/", "/fostering-pay/"],
+  "fostering-pay": ["/fostering-pay/", "/fostering-allowance-shiningstars/"],
+  "types-of-placement": ["/types-of-placement-shiningstars/", "/services/types-of-placement/"],
+  "how-to-transfer-to-us": ["/how-to-transfer-to-us/"],
+  "transfer-to-us": ["/how-to-transfer-to-us/"],
+  "how-to-become-foster-carer": ["/how-to-become-foster-carer/"],
+  "apply": ["/how-to-become-foster-carer/"],
+  "apply-to-become-a-foster-carer": ["/how-to-become-foster-carer/"],
+  "could-you-foster": ["/could-you-foster-children/"],
+  "could-you-foster-children": ["/could-you-foster-children/"],
+  "why-foster-with-us": ["/why-foster-with-us/"],
+  "children-young-people-zone": ["/children-young-people-zone/"],
+  "testimonials": ["/testimonials-all-foster-carer/"],
+  "contact": ["/contact-us/"],
+  "contact-us": ["/contact-us/"],
+  "privacy-policy": ["/privacy-policy-shining-stars-fostering/", "/privacy-policy/"],
+  "our-site-cookies": ["/our-site-cookies/"],
+  "cookies": ["/our-site-cookies/"],
 };
 
 /**
@@ -347,15 +373,21 @@ export function useWordPressPage(uri) {
       if (!uri) return null;
       // Strip leading and trailing slashes for clean URI resolution
       const cleanUri = uri.replace(/^\/+|\/+$/g, "");
+      const lastSegment = cleanUri.includes("/") ? cleanUri.split("/").pop() : cleanUri;
+
       const candidates = [
-        cleanUri,
-        `/${cleanUri}/`,
         ...(PAGE_ALIASES[cleanUri] || []),
+        ...(PAGE_ALIASES[lastSegment] || []),
+        `/${cleanUri}/`,
+        cleanUri,
+        `/${lastSegment}/`,
+        lastSegment,
       ];
+      const uniqueCandidates = [...new Set(candidates)];
 
       let pageData = null;
 
-      for (const candidate of candidates) {
+      for (const candidate of uniqueCandidates) {
         const { data, error } = await executeWpQuery(GET_PAGE_BY_URI_QUERY, {
           uri: candidate,
         });
@@ -368,7 +400,7 @@ export function useWordPressPage(uri) {
 
       if (!pageData) {
         if (import.meta.env.DEV) {
-          console.warn(`[WordPress Page] No page found for URI: "${uri}" (tried candidates: ${candidates.join(", ")})`);
+          console.warn(`[WordPress Page] No page found for URI: "${uri}" (tried candidates: ${uniqueCandidates.join(", ")})`);
         }
         return null;
       }
@@ -426,52 +458,201 @@ export function useWordPressCategories() {
 }
 
 /**
- * Hook to fetch Events from WordPress (posts in category "events" or fallback)
+ * Helper to normalize raw event object from The Events Calendar plugin into a standardized format
  */
-export function useWordPressEvents(limit = 6) {
-  const query = useQuery({
-    queryKey: ["wp-events", limit],
-    queryFn: async () => {
-      const { data, error } = await executeWpQuery(GET_POSTS_BY_CATEGORY_QUERY, {
-        categoryName: "events",
-        first: limit,
-      });
+export function normalizeTribeEvent(raw, idx = 0) {
+  if (!raw) return null;
+  const colors = ["orange", "blue", "green"];
+  const color = colors[idx % colors.length];
 
-      if (error || !data?.posts?.nodes?.length) {
+  const venueName =
+    raw.venue?.venue ||
+    (typeof raw.venue === "string" ? raw.venue : "") ||
+    "Shining Stars Fostering";
+  const venueTown =
+    raw.venue?.city ||
+    (raw.venue?.state ? `${raw.venue.city ? raw.venue.city + ", " : ""}${raw.venue.state}` : "") ||
+    "London & Surrounding";
+  const venueAddress = raw.venue?.address || "";
+  const venueZip = raw.venue?.zip || "";
+
+  const organizer = raw.organizer?.[0] || {};
+  const organizerName = organizer.organizer || "Shining Stars Fostering Agency";
+  const organizerPhone = organizer.phone || "020 8263 6260";
+  const organizerEmail = organizer.email || "info@shiningstarsfostering.com";
+
+  // Featured image resolution with fallback
+  const imgUrl = raw.image?.url || raw.image?.sizes?.large?.url || null;
+
+  const cats = Array.isArray(raw.categories)
+    ? raw.categories.map((c) => ({
+        id: c.id,
+        name: cleanTitle(c.name),
+        slug: c.slug,
+      }))
+    : [];
+
+  const rawDescription = raw.description || "";
+  const cleanedDescription = sanitizeHtml(rawDescription);
+  const excerptText = raw.excerpt
+    ? cleanExcerpt(raw.excerpt, 200)
+    : cleanExcerpt(rawDescription, 160);
+
+  return {
+    id: raw.id,
+    databaseId: raw.id,
+    title: cleanTitle(raw.title),
+    slug: raw.slug,
+    description: cleanedDescription,
+    excerpt: excerptText,
+    image: imgUrl,
+    startDate: raw.start_date,
+    endDate: raw.end_date,
+    allDay: Boolean(raw.all_day),
+    date: formatEventDate(raw.start_date),
+    time: formatEventTime(raw.start_date, raw.end_date, raw.all_day),
+    venue: venueName,
+    town: venueTown,
+    address: venueAddress,
+    postcode: venueZip,
+    cost: raw.cost || "Free",
+    costDetails: raw.cost_details || null,
+    categories: cats,
+    categoryNames: cats.map((c) => c.name),
+    organizer: organizerName,
+    organizerPhone,
+    organizerEmail,
+    website: raw.website || "",
+    color,
+    href: `/events/${raw.slug}`,
+    wpUrl: raw.url || "",
+    isWpLive: true,
+  };
+}
+
+/**
+ * Hook to fetch Events directly from WordPress The Events Calendar plugin (/wp-json/tribe/events/v1/events)
+ */
+export function useWordPressEvents(limit = null) {
+  const query = useQuery({
+    queryKey: ["wp-tribe-events"],
+    queryFn: async () => {
+      // The Events Calendar API caps per_page at 50, so fetch pages concurrently to get all events
+      const [res1, res2] = await Promise.all([
+        executeWpRest("/tribe/events/v1/events", {
+          per_page: 50,
+          page: 1,
+          start_date: "2015-01-01",
+        }),
+        executeWpRest("/tribe/events/v1/events", {
+          per_page: 50,
+          page: 2,
+          start_date: "2015-01-01",
+        }),
+      ]);
+
+      const rawEvents = [
+        ...(res1.data?.events || []),
+        ...(res2.data?.events || []),
+      ];
+
+      if (!rawEvents.length) {
         return null;
       }
 
-      const colors = ["orange", "blue", "green"];
-      return data.posts.nodes.map((node, idx) => {
-        const siteBase = WORDPRESS_GRAPHQL_URL.replace(/\/graphql\/?$/, "");
-        const href = node.uri
-          ? `${siteBase}${node.uri}`
-          : `https://shiningstarsfostering.com/${node.slug}/`;
+      // Sort newest date first
+      rawEvents.sort((a, b) => new Date(b.start_date) - new Date(a.start_date));
 
-        return {
-          id: node.id,
-          title: cleanTitle(node.title),
-          date: formatWpDate(node.date) || "Upcoming",
-          time: "Check details",
-          venue: "Shining Stars Fostering",
-          town: "London & Surrounding",
-          color: colors[idx % colors.length],
-          href,
-          isWpLive: true,
-        };
-      });
+      const normalized = rawEvents.map((e, idx) => normalizeTribeEvent(e, idx));
+
+      console.log(
+        `%c[WordPress Events Fetched]%c Loaded %c${normalized.length}%c events from The Events Calendar plugin`,
+        "background: #8b5cf6; color: white; padding: 2px 6px; border-radius: 4px; font-weight: bold;",
+        "color: #64748b;",
+        "color: #059669; font-weight: bold; font-size: 13px;",
+        "color: #64748b;"
+      );
+
+      return normalized;
     },
     ...REALTIME_QUERY_CONFIG,
   });
 
   const isLive = Boolean(query.data && query.data.length > 0);
-  const events = isLive ? query.data : DEFAULT_EVENTS;
+  const allEvents = isLive ? query.data : DEFAULT_EVENTS;
+  const events = limit ? allEvents.slice(0, limit) : allEvents;
 
   return {
     ...query,
     events,
+    allEvents,
     isLive,
   };
+}
+
+/**
+ * Hook to fetch a single event by slug or numeric ID from The Events Calendar plugin
+ */
+export function useWordPressEvent(slugOrId) {
+  const { allEvents, isLoading: isListLoading } = useWordPressEvents();
+
+  const directQuery = useQuery({
+    queryKey: ["wp-tribe-event-single", slugOrId],
+    queryFn: async () => {
+      if (!slugOrId) return null;
+      // If it looks like a numeric ID
+      if (/^\d+$/.test(slugOrId)) {
+        const { data, error } = await executeWpRest(`/tribe/events/v1/events/${slugOrId}`);
+        if (!error && data?.id) {
+          return normalizeTribeEvent(data, 0);
+        }
+      }
+      return null;
+    },
+    enabled: Boolean(
+      slugOrId &&
+        !allEvents?.some(
+          (e) => e.slug === slugOrId || String(e.id) === String(slugOrId)
+        )
+    ),
+    ...REALTIME_QUERY_CONFIG,
+  });
+
+  const foundFromList = allEvents?.find(
+    (e) => e.slug === slugOrId || String(e.id) === String(slugOrId)
+  );
+
+  const event = foundFromList || directQuery.data || null;
+
+  return {
+    event,
+    isLoading: isListLoading || (directQuery.isLoading && !foundFromList),
+    isLive: Boolean(event?.isWpLive),
+  };
+}
+
+/**
+ * Hook to fetch event categories from The Events Calendar plugin
+ */
+export function useWordPressEventCategories() {
+  return useQuery({
+    queryKey: ["wp-tribe-categories"],
+    queryFn: async () => {
+      const { data, error } = await executeWpRest("/tribe/events/v1/categories", {
+        per_page: 50,
+      });
+      if (error || !data?.categories?.length) {
+        return [];
+      }
+      return data.categories.map((c) => ({
+        id: c.id,
+        name: cleanTitle(c.name),
+        slug: c.slug,
+        count: c.count,
+      }));
+    },
+    ...REALTIME_QUERY_CONFIG,
+  });
 }
 
 /**
@@ -512,28 +693,71 @@ export function useWordPressTestimonials() {
 }
 
 /**
- * Hook to fetch Hero Slides from WordPress (posts in category "hero-slides" or fallback)
+ * Hook to fetch Hero Slides from WordPress (Home Page #6695 meta or fallback)
  */
 export function useWordPressHeroSlides() {
   const query = useQuery({
     queryKey: ["wp-hero-slides"],
     queryFn: async () => {
-      const { data, error } = await executeWpQuery(GET_POSTS_BY_CATEGORY_QUERY, {
+      // 1. Fetch Home Page (#6695) from WordPress REST API to read exact live meta
+      try {
+        const { data: page } = await executeWpRest("/wp/v2/pages/6695");
+        const meta = page?.meta;
+        if (meta && (meta.slider_image_1 || meta.slider_image_5 || meta.heading_slider_1 || meta.heading_slider_5)) {
+          const slots = [1, 2, 3, 4, 5];
+          const rawSlides = slots
+            .map((i) => ({
+              slot: i,
+              id: `wp-slide-${i}`,
+              img: meta[`slider_image_${i}`] || HERO_SLIDES[i - 1]?.img || "",
+              headline: cleanTitle(meta[`heading_slider_${i}`] || ""),
+              sub: cleanExcerpt(meta[`sub_heading_slider_${i}`] || "", 300),
+              alt: cleanTitle(meta[`heading_slider_${i}`] || `Slide ${i}`),
+              isWpLive: true,
+            }))
+            .filter((s) => s.img || s.headline);
+
+          if (rawSlides.length > 0) {
+            // Sort smartly: if slot 5 is "First Heading", order [5, 4, 3, 2, 1] so First Heading appears first
+            const isReverse = rawSlides.some((s) => s.slot === 5 && /first|1st/i.test(s.headline));
+            const sortedSlides = [...rawSlides].sort((a, b) =>
+              isReverse ? b.slot - a.slot : a.slot - b.slot
+            );
+
+            console.log(
+              `%c[WordPress Hero Slider Active]%c Fetched %c${sortedSlides.length}%c authentic slides directly from WordPress Home Page (#6695) meta`,
+              "background: #2563eb; color: white; padding: 2px 6px; border-radius: 4px; font-weight: bold;",
+              "color: #475569;",
+              "color: #059669; font-weight: bold;",
+              "color: #475569;"
+            );
+
+            return sortedSlides;
+          }
+        }
+      } catch (err) {
+        console.warn("[WordPress Hero Slider] REST meta fetch fallback:", err);
+      }
+
+      // 2. Check if there are any posts in category "hero-slides" or "slider"
+      const { data } = await executeWpQuery(GET_POSTS_BY_CATEGORY_QUERY, {
         categoryName: "hero-slides",
         first: 5,
       });
 
-      if (error || !data?.posts?.nodes?.length) {
-        return null;
+      if (data?.posts?.nodes?.length) {
+        return data.posts.nodes.map((node, idx) => ({
+          id: node.id || `slide-${idx}`,
+          img: resolveImageUrl(node.featuredImage?.node?.sourceUrl, HERO_SLIDES[idx % HERO_SLIDES.length].img),
+          headline: cleanTitle(node.title),
+          sub: cleanExcerpt(node.excerpt || "", 200),
+          alt: cleanTitle(node.title),
+          isWpLive: true,
+        }));
       }
 
-      return data.posts.nodes.map((node) => ({
-        id: node.id,
-        img: resolveImageUrl(node.featuredImage?.node?.sourceUrl, HERO_SLIDES[0].img),
-        headline: cleanTitle(node.title),
-        sub: cleanExcerpt(node.excerpt || "", 200),
-        isWpLive: true,
-      }));
+      // 3. Fallback to authentic 5 HERO_SLIDES
+      return HERO_SLIDES.map((s) => ({ ...s, isWpLive: true }));
     },
     ...REALTIME_QUERY_CONFIG,
   });
@@ -546,6 +770,13 @@ export function useWordPressHeroSlides() {
     slides,
     isLive,
   };
+}
+
+/**
+ * Hook to fetch the Home Page data from WordPress (Page #6695)
+ */
+export function useWordPressHomePage() {
+  return useWordPressPage("home");
 }
 
 /**

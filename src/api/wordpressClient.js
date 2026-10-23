@@ -9,6 +9,9 @@ export const WORDPRESS_GRAPHQL_URL =
   import.meta.env.VITE_WORDPRESS_GRAPHQL_URL ||
   "https://teal-penguin-283093.hostingersite.com/graphql";
 
+export const WORDPRESS_SITE_BASE = WORDPRESS_GRAPHQL_URL.replace(/\/graphql\/?$/, "");
+export const WORDPRESS_REST_URL = `${WORDPRESS_SITE_BASE}/wp-json`;
+
 export const WORDPRESS_AUTH_TOKEN =
   import.meta.env.VITE_WORDPRESS_AUTH_TOKEN || "";
 
@@ -46,6 +49,43 @@ export async function executeWpQuery(query, variables = {}) {
     if (import.meta.env.DEV) {
       console.warn(
         `[WordPress GraphQL Error] Failed to fetch from "${WORDPRESS_GRAPHQL_URL}". Falling back to local data. Reason:`,
+        error?.message || error
+      );
+    }
+    return { data: null, error };
+  }
+}
+
+/**
+ * Safe fetch wrapper that executes a WordPress REST API request.
+ */
+export async function executeWpRest(endpoint, params = {}) {
+  try {
+    const base = endpoint.startsWith("http")
+      ? endpoint
+      : `${WORDPRESS_REST_URL}${endpoint.startsWith("/") ? "" : "/"}${endpoint}`;
+    const url = new URL(base);
+    Object.entries(params).forEach(([key, val]) => {
+      if (val !== undefined && val !== null) {
+        url.searchParams.append(key, String(val));
+      }
+    });
+
+    const res = await fetch(url.toString(), {
+      headers: getHeaders(),
+      cache: "no-cache",
+    });
+
+    if (!res.ok) {
+      throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+    }
+
+    const data = await res.json();
+    return { data, error: null };
+  } catch (error) {
+    if (import.meta.env.DEV) {
+      console.warn(
+        `[WordPress REST Error] Failed to fetch from "${endpoint}". Reason:`,
         error?.message || error
       );
     }

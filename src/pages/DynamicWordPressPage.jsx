@@ -6,9 +6,10 @@ import PageHero from "@/components/site/PageHero";
 import ClosingCta from "@/components/site/ClosingCta";
 import EnquirySection from "@/components/site/EnquirySection";
 import PageNotFound from "@/lib/PageNotFound";
-import { ArrowLeft, Calendar, Rss, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { HERO_IMGS } from "@/lib/pagesContent";
-import { formatWpDate } from "@/api/wordpressUtils";
+import { decodeHtmlEntities, stripHtml } from "@/api/wordpressUtils";
+import WordPressContentRenderer from "@/components/site/WordPressContentRenderer";
 
 export default function DynamicWordPressPage({ uriOverride }) {
   const params = useParams();
@@ -53,49 +54,66 @@ export default function DynamicWordPressPage({ uriOverride }) {
     return <PageNotFound />;
   }
 
+  // Extract real dynamic lead sentence from WordPress content for the hero intro
+  const leadMatch = page?.content
+    ? page.content
+        .replace(/<div[^>]*>/gi, "")
+        .replace(/<\/div>/gi, "")
+        .match(/<p[^>]*>([\s\S]*?)<\/p>/i)
+    : null;
+  const leadIntro = leadMatch ? decodeHtmlEntities(stripHtml(leadMatch[1])).trim() : "";
+  const isAboutPage =
+    resolvedUri.toLowerCase() === "about" ||
+    resolvedUri.toLowerCase().includes("about-shining-stars") ||
+    page.slug === "about";
+
+  const pageDisplayTitle = isAboutPage ? "About Shining Stars Fostering" : page.title;
+  const pageHeroIntro = isAboutPage
+    ? "An independent fostering agency dedicated to placing children at the heart of everything we do, supporting compassionate foster families across London."
+    : (leadIntro || "We provide 24/7 bespoke support, comprehensive training, and generous allowances for foster carers across London and the UK.");
+  const pageHeroImg =
+    page.image ||
+    (isAboutPage
+      ? "https://teal-penguin-283093.hostingersite.com/wp-content/uploads/2026/09/smiley-parent-child-together-outdoors-park-scaled-1.jpg"
+      : HERO_IMGS.about);
+  const pageHeroImgAlt =
+    page.imageAlt ||
+    (isAboutPage ? "Foster family smiling together in park" : page.title);
+
   return (
     <main>
       <SEO
-        title={page.title}
-        description={`Learn more about ${page.title} on the Shining Stars Fostering website.`}
-        image={page.image || HERO_IMGS.about}
+        title={pageDisplayTitle}
+        description={`Learn more about ${pageDisplayTitle} on the Shining Stars Fostering website.`}
+        image={pageHeroImg}
       />
 
       <PageHero
         eyebrow="Shining Stars Fostering"
-        title={page.title}
-        intro="Official guidance and information from Shining Stars Fostering Agency."
-        img={page.image || HERO_IMGS.about}
-        imgAlt={page.imageAlt || page.title}
+        title={pageDisplayTitle}
+        intro={pageHeroIntro}
+        img={pageHeroImg}
+        imgAlt={pageHeroImgAlt}
       >
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="flex flex-wrap items-center gap-4">
           <Link
-            to="/"
-            className="inline-flex items-center gap-1.5 text-xs font-bold text-white/80 hover:text-white transition-colors bg-white/10 px-3 py-1.5 rounded-full backdrop-blur"
+            to="/foster-with-us#enquire"
+            className="inline-flex items-center justify-center gap-2 bg-orange text-white font-bold px-8 py-3.5 rounded-full min-h-[48px] hover:bg-orange/90 transition-all shadow-md text-base"
           >
-            <ArrowLeft size={13} /> Back to Home
+            Send an enquiry
           </Link>
-          <span className="inline-flex items-center gap-1 text-xs font-bold bg-green/20 text-emerald-300 px-3 py-1.5 rounded-full backdrop-blur">
-            <Rss size={12} /> Live from WordPress
-          </span>
-          <span className="inline-flex items-center gap-1 text-xs font-mono font-bold bg-white/15 text-white px-3 py-1.5 rounded-full backdrop-blur">
-            WP Page ID: #{page.databaseId}
-          </span>
-          {page.date && (
-            <span className="hidden sm:inline-flex items-center gap-1 text-xs text-white/80 bg-white/10 px-3 py-1.5 rounded-full backdrop-blur">
-              <Calendar size={13} /> Updated {formatWpDate(page.date)}
-            </span>
-          )}
         </div>
       </PageHero>
 
-      {/* Main Content Body */}
-      <section className="bg-white py-16 md:py-24">
-        <div className="container-ss max-w-4xl mx-auto">
+      {/* Main Content Body (Structured sections) */}
+      <section className="bg-slate-50/50 py-16 md:py-24">
+        <div className="container-ss">
           {page.content ? (
-            <div
-              className="prose prose-slate lg:prose-lg max-w-none text-charcoal/80 leading-relaxed space-y-6 [&_h2]:text-2xl [&_h2]:font-bold [&_h2]:font-display [&_h2]:text-charcoal [&_h2]:mt-10 [&_h2]:mb-4 [&_h3]:text-xl [&_h3]:font-bold [&_h3]:text-charcoal [&_h3]:mt-8 [&_h3]:mb-3 [&_p]:leading-relaxed [&_img]:rounded-3xl [&_img]:my-6 [&_img]:shadow-md [&_ul]:list-disc [&_ul]:pl-6 [&_ol]:list-decimal [&_ol]:pl-6 [&_a]:text-blue [&_a]:font-bold hover:[&_a]:text-orange [&_.e-con]:my-8 [&_.e-con-inner]:flex [&_.e-con-inner]:flex-col [&_.e-con-inner]:md:flex-row [&_.e-con-inner]:gap-8 [&_.e-con-inner]:items-center [&_.elementor-widget-image]:w-full [&_.elementor-widget-image_img]:w-full [&_.elementor-widget-image_img]:h-auto [&_.elementor-widget-image_img]:object-cover"
-              dangerouslySetInnerHTML={{ __html: page.content }}
+            <WordPressContentRenderer
+              content={page.content}
+              pageTitle={page.title}
+              pageUri={page.uri}
+              slug={page.slug}
             />
           ) : (
             <div className="bg-sky/40 p-8 rounded-3xl text-center">
@@ -113,4 +131,3 @@ export default function DynamicWordPressPage({ uriOverride }) {
     </main>
   );
 }
-

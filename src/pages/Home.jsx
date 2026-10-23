@@ -11,8 +11,25 @@ import NewsSection from "@/components/site/NewsSection";
 import TestimonialsSection from "@/components/site/TestimonialsSection";
 import AreaCoverage from "@/components/site/AreaCoverage";
 import EnquirySection from "@/components/site/EnquirySection";
+import { useWordPressHomePage } from "@/hooks/useWordPressData";
 
 export default function Home() {
+  const { data: homePage } = useWordPressHomePage();
+
+  React.useEffect(() => {
+    if (homePage?.databaseId) {
+      console.log(
+        `%c[WordPress Home Page Active]%c Loaded from WordPress | Database ID: %c#${homePage.databaseId}%c | URI: %c${homePage.uri}%c | Title: "${homePage.title}"`,
+        "background: #0284c7; color: white; padding: 2px 6px; border-radius: 4px; font-weight: bold;",
+        "color: #475569;",
+        "color: #2563eb; font-weight: bold; background: #eff6ff; padding: 1px 6px; border-radius: 3px; font-size: 13px;",
+        "color: #475569;",
+        "color: #7c3aed; font-weight: bold;",
+        "color: #475569;"
+      );
+    }
+  }, [homePage]);
+
   const scrollToEnquire = () => {
     document.getElementById("enquire")?.scrollIntoView({ behavior: "smooth", block: "start" });
   };

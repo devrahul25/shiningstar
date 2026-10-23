@@ -7,14 +7,16 @@ import NavItem from "@/components/site/NavItem";
 
 const EXPLORE = [
   { label: "Home", to: "/" },
-  { label: "About Us", to: "/about" },
-  { label: "Meet the Team", to: "/about#team" },
-  { label: "Foster With Us", to: "/foster-with-us" },
-  { label: "Types of Fostering", to: "/foster-with-us#types" },
-  { label: "Fostering FAQs", to: "/foster-with-us#faqs" },
-  { label: "Kids Zone", to: "/kids-zone" },
-  { label: "News & Events", to: "/#news" },
-  { label: "Transfer to Us", to: "https://www.shiningstarsfostering.com/how-to-transfer-to-us/" },
+  { label: "About Shining Stars", to: "/about" },
+  { label: "Meet the Team", to: "/team" },
+  { label: "Why Foster With Us?", to: "/why-foster-with-us/" },
+  { label: "Types of Placement", to: "/types-of-placement-shiningstars/" },
+  { label: "Fostering Allowances", to: "/fostering-allowance-shiningstars/" },
+  { label: "Transfer to Us", to: "/how-to-transfer-to-us/" },
+  { label: "Frequently Asked Questions", to: "/frequently-asked-questions-faq/" },
+  { label: "Kids & Young People Zone", to: "/children-young-people-zone/" },
+  { label: "News & Articles", to: "/news" },
+  { label: "Events & Calendar", to: "/events" },
 ];
 
 export default function Footer() {
@@ -71,9 +73,9 @@ export default function Footer() {
         <div className="mt-12 pt-6 border-t border-white/15 flex flex-col md:flex-row items-center justify-between gap-3 text-xs text-white/60">
           <p>© {new Date().getFullYear()} Shining Stars Fostering Agency Ltd. Prototype for review.</p>
           <div className="flex gap-5">
-            <a href="https://www.shiningstarsfostering.com/privacy-policy-shining-stars-fostering/" className="hover:text-yellow py-1">Privacy Policy</a>
-            <a href="https://www.shiningstarsfostering.com/our-site-cookies/" className="hover:text-yellow py-1">Cookies</a>
-            <a href="https://www.proceduresonline.com/shiningstars/index.html" className="hover:text-yellow py-1">Policies</a>
+            <Link to="/privacy-policy-shining-stars-fostering/" className="hover:text-yellow py-1">Privacy Policy</Link>
+            <Link to="/our-site-cookies/" className="hover:text-yellow py-1">Cookies</Link>
+            <a href="https://www.proceduresonline.com/shiningstars/index.html" target="_blank" rel="noopener noreferrer" className="hover:text-yellow py-1">Policies</a>
           </div>
         </div>
       </div>

@@ -36,21 +36,42 @@ export const NAV_LINKS = [
 
 export const HERO_SLIDES = [
   {
-    img: `${IMG}/2019/10/field-1728099_960_720-1.jpg`,
-    headline: "Every child deserves to shine.",
-    sub: "An independent fostering agency based in Croydon, rated Outstanding by Ofsted, supporting foster families across London and the surrounding counties.",
+    id: "slide-1",
+    img: "https://teal-penguin-283093.hostingersite.com/wp-content/uploads/2026/08/Ofsted-3.jpeg",
+    headline: "First Heading",
+    sub: "First Subheading",
+    alt: "First Heading - Shining Stars Fostering Agency",
   },
   {
-    img: `${IMG}/2019/10/photo-1508205065970-cad01cebebb4-e1571942143484-1024x596.jpeg`,
-    headline: "Could you foster a child?",
-    sub: "Join a family of dedicated carers, supported 24 hours a day, 7 days a week, 365 days a year.",
+    id: "slide-2",
+    img: "https://teal-penguin-283093.hostingersite.com/wp-content/uploads/2026/08/2nd.png",
+    headline: "2nd Heading",
+    sub: "2nd Subheading",
+    alt: "2nd Heading",
   },
   {
-    img: `${IMG}/2025/05/London-Marathon_caroline-1024x684.png`,
-    headline: "More than an agency. A family.",
-    sub: "Generous allowances, ongoing training and a community that stands beside every carer and every child.",
+    id: "slide-3",
+    img: "https://teal-penguin-283093.hostingersite.com/wp-content/uploads/2026/08/3rd.png",
+    headline: "3rrd heading",
+    sub: "3rd subheading",
+    alt: "3rrd heading",
+  },
+  {
+    id: "slide-4",
+    img: "https://teal-penguin-283093.hostingersite.com/wp-content/uploads/2026/08/4th.png",
+    headline: "4th Heading",
+    sub: "4th subheading",
+    alt: "4th Heading",
+  },
+  {
+    id: "slide-5",
+    img: "https://teal-penguin-283093.hostingersite.com/wp-content/uploads/2026/08/5th.png",
+    headline: "5th Heading",
+    sub: "5th Subheading",
+    alt: "5th Heading",
   },
 ];
+
 
 export const TICKER_ITEMS = [
   { label: "Recruiting Foster Carers in Medway, Kent", href: `${IMG}/2026/05/medwayrcrudat.jpeg` },

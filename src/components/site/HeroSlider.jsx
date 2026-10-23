@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { ChevronLeft, ChevronRight, Star } from "lucide-react";
 import { useWordPressHeroSlides } from "@/hooks/useWordPressData";
 
@@ -32,7 +33,7 @@ export default function HeroSlider({ onEnquire }) {
         >
           <img
             src={s.img}
-            alt=""
+            alt={s.alt || s.headline}
             className="w-full h-full object-cover"
             loading={idx === 0 ? "eager" : "lazy"}
           />
@@ -50,9 +51,11 @@ export default function HeroSlider({ onEnquire }) {
           <h1 key={i} className="display-hero fade-up text-white">
             {currentSlide.headline}
           </h1>
-          <p key={`s${i}`} className="fade-up mt-5 text-lg md:text-xl text-white/90 max-w-xl">
-            {currentSlide.sub}
-          </p>
+          {currentSlide.sub && (
+            <p key={`s${i}`} className="fade-up mt-5 text-lg md:text-xl text-white/90 max-w-xl">
+              {currentSlide.sub}
+            </p>
+          )}
           <div className="mt-8 flex flex-wrap gap-4">
             <button
               onClick={onEnquire}
@@ -61,12 +64,12 @@ export default function HeroSlider({ onEnquire }) {
             >
               Become a Foster Carer
             </button>
-            <a
-              href="https://www.shiningstarsfostering.com/could-you-foster-children/"
-              className="bg-white/15 backdrop-blur border-2 border-white/70 text-white font-bold px-7 py-3.5 rounded-full hover:bg-white hover:text-charcoal transition-colors"
+            <Link
+              to="/could-you-foster-children"
+              className="bg-white/15 backdrop-blur border-2 border-white/70 text-white font-bold px-7 py-3.5 rounded-full hover:bg-white hover:text-charcoal transition-colors inline-flex items-center justify-center"
             >
               Could You Foster?
-            </a>
+            </Link>
           </div>
         </div>
       </div>
